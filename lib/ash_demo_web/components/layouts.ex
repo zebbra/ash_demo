@@ -10,5 +10,7 @@ defmodule AshDemoWeb.Layouts do
   """
   use AshDemoWeb, :html
 
+  import AshDemoWeb.AdminComponents
+
   embed_templates "layouts/*"
 end

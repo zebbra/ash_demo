@@ -82,19 +82,24 @@ defmodule AshDemoWeb do
 
   defp html_helpers do
     quote do
+      # Core UI components and translation
       import AshDemoWeb.CoreComponents
       import AshDemoWeb.Gettext
+
+      # Import common helpers for views
       import AshDemoWeb.Helpers
+
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components and translation
-      # Import common helpers for views
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())
+
+      def ok(socket), do: {:ok, socket}
+      def noreply(socket), do: {:noreply, socket}
     end
   end
 

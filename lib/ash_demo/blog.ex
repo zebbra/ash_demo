@@ -5,5 +5,6 @@ defmodule AshDemo.Blog do
   resources do
     resource AshDemo.Blog.Post
     resource AshDemo.Blog.Comment
+    resource AshDemo.Blog.Category
   end
 end

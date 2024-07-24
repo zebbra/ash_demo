@@ -7,18 +7,10 @@
 # General application configuration
 import Config
 
-config :ash, custom_types: [ticket_status: :"Elixir.AshDemo.Support.Ticket.Types.Status"]
+config :ash, custom_types: [search_query: AshDemo.Type.SearchQuery]
 
-# Configures the mailer
-#
-# By default it uses the "Local" adapter which stores the emails
-# locally. You can see the emails in your browser, at "/dev/mailbox".
-#
-# For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
 config :ash_demo, AshDemo.Mailer, adapter: Swoosh.Adapters.Local
 
-# Configures the endpoint
 config :ash_demo, AshDemoWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
@@ -26,13 +18,25 @@ config :ash_demo, AshDemoWeb.Endpoint,
     formats: [html: AshDemoWeb.ErrorHTML, json: AshDemoWeb.ErrorJSON],
     layout: false
   ],
+
+  # Configures the mailer
+  #
+  # By default it uses the "Local" adapter which stores the emails
+  # locally. You can see the emails in your browser, at "/dev/mailbox".
+  #
+  # For production it's recommended to configure a different adapter
+  # at the `config/runtime.exs`.
   pubsub_server: AshDemo.PubSub,
   live_view: [signing_salt: "DJVzQ41B"]
 
 config :ash_demo,
   ecto_repos: [AshDemo.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [AshDemo.Blog, AshDemo.Support]
+  ash_domains: [AshDemo.Blog]
+
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
+# Configures the endpoint
 
 # Configure esbuild (the version is required)
 config :esbuild,

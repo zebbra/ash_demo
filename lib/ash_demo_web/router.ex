@@ -19,13 +19,20 @@ defmodule AshDemoWeb.Router do
 
     get "/", PageController, :home
 
-    live_session :blog, on_mount: AshDemoWeb.AssignUser do
-      live "/posts", PostLive.Index, :index
-      live "/posts/new", PostLive.Index, :new
-      live "/posts/:id/edit", PostLive.Index, :edit
+    scope "/admin", Admin do
+      live_session :admin, layout: {AshDemoWeb.Layouts, :admin}, on_mount: AshDemoWeb.AssignUser do
+        # Posts
+        live "/posts", PostLive.Index, :index
+        live "/posts/new", PostLive.Index, :new
+        live "/posts/:id/edit", PostLive.Index, :edit
+        live "/posts/:id", PostLive.Show, :show
+        live "/posts/:id/show/edit", PostLive.Show, :edit
 
-      live "/posts/:id", PostLive.Show, :show
-      live "/posts/:id/show/edit", PostLive.Show, :edit
+        # Categories
+        live "/categories", CategoryLive.Index, :index
+        live "/categories/new", CategoryLive.Index, :new
+        live "/categories/:id/edit", CategoryLive.Index, :edit
+      end
     end
   end
 

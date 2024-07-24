@@ -1,4 +1,4 @@
-defmodule AshDemoWeb.PostLive.Show do
+defmodule AshDemoWeb.Admin.PostLive.Show do
   @moduledoc false
 
   use AshDemoWeb, :live_view

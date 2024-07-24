@@ -20,6 +20,7 @@ defmodule AshDemoWeb.ConnCase do
   using do
     quote do
       use AshDemoWeb, :verified_routes
+
       import AshDemoWeb.ConnCase
       import Phoenix.ConnTest
       import Plug.Conn

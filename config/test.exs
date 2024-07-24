@@ -26,6 +26,7 @@ config :ash_demo, AshDemoWeb.Endpoint,
 
 # In test we don't send emails
 config :logger, level: :warning
+
 config :phoenix, :plug_init_mode, :runtime
 
 config :phoenix_live_view,

@@ -1,4 +1,4 @@
-defmodule AshDemoWeb.PostLive.FormComponent do
+defmodule AshDemoWeb.Admin.PostLive.CommentForm do
   @moduledoc false
   use AshDemoWeb, :live_component
 
@@ -6,23 +6,17 @@ defmodule AshDemoWeb.PostLive.FormComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.header>
-        <%= @title %>
-        <:subtitle>Use this form to manage post records in your database.</:subtitle>
-      </.header>
-
       <.simple_form
         for={@form}
-        id="post-form"
+        id="comment-form"
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
       >
-        <.input type="text" label="Title" field={@form[:title]} />
-        <.input type="textarea" label="Body" field={@form[:body]} />
+        <.input type="textarea" placeholder="Comment" field={@form[:comment]} />
 
         <:actions>
-          <.button phx-disable-with="Saving...">Save Post</.button>
+          <.button phx-disable-with="Saving...">Comment</.button>
         </:actions>
       </.simple_form>
     </div>
@@ -55,6 +49,7 @@ defmodule AshDemoWeb.PostLive.FormComponent do
         {:noreply, socket}
 
       {:error, form} ->
+        dbg(form)
         {:noreply, assign(socket, form: form)}
     end
   end
@@ -63,20 +58,11 @@ defmodule AshDemoWeb.PostLive.FormComponent do
 
   defp assign_form(%{assigns: %{post: post}} = socket) do
     form =
-      if post do
-        AshPhoenix.Form.for_update(post, :update,
-          as: "post",
-          # socket.assigns.current_user
-          actor: nil
-        )
-      else
-        AshPhoenix.Form.for_create(AshDemo.Blog.Post, :create,
-          as: "post",
-          # socket.assigns.current_user
-          actor: nil
-        )
-      end
+      AshPhoenix.Form.for_update(post, :add_comment,
+        as: "post",
+        actor: socket.assigns.current_user
+      )
 
-    assign(socket, form: to_form(form))
+    assign(socket, :form, to_form(form))
   end
 end

@@ -10,7 +10,10 @@ defmodule AshDemo.MixProject do
       start_permanent: Mix.env() == :prod,
       consolidate_protocols: Mix.env() != :dev,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      preferred_cli_env: [
+        "test.watch": :test
+      ]
     ]
   end
 
@@ -33,11 +36,6 @@ defmodule AshDemo.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:picosat_elixir, "~> 0.2"},
-      {:ash_postgres, "~> 2.0"},
-      {:ash, "~> 3.0"},
-      {:ash_phoenix, "~> 2.0"},
-      {:igniter, "~> 0.3"},
       {:phoenix, "~> 1.7.14"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},
@@ -48,26 +46,39 @@ defmodule AshDemo.MixProject do
       {:phoenix_live_view, "~> 1.0.0-rc.1", override: true},
       {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.3"},
-      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
-      {:heroicons,
-       github: "tailwindlabs/heroicons",
-       tag: "v2.1.1",
-       sparse: "optimized",
-       app: false,
-       compile: false,
-       depth: 1},
       {:swoosh, "~> 1.5"},
       {:finch, "~> 0.13"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
+      {:earmark, "~> 1.4"},
+
+      # Ash
+      {:ash, "~> 3.0"},
+      {:ash_postgres, "~> 2.0"},
+      {:ash_phoenix, "~> 2.0"},
+      {:igniter, "~> 0.3"},
+      {:picosat_elixir, "~> 0.2"},
+
+      # I18n
+      {:ex_cldr, "~> 2.37"},
+      {:ex_cldr_numbers, "~> 2.33"},
+      {:ex_cldr_dates_times, "~> 2.19"},
+      {:ex_cldr_units, "~> 3.17"},
+      {:gettext, "~> 0.20"},
+      {:timex, "~> 3.7.11"},
+
+      # Assets
+      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:tabler_icons,
+       github: "tabler/tabler-icons", sparse: "/icons", app: false, compile: false, depth: 1},
 
       # Linting & testing
-      {:styler, "~> 1.0.0-rc.1", only: [:dev, :test], runtime: false}
+      {:styler, "~> 1.0.0-rc.1", only: [:dev, :test], runtime: false},
+      {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false}
     ]
   end
 

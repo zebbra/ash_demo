@@ -17,7 +17,9 @@ defmodule AshDemoWeb.CoreComponents do
   use Phoenix.Component
 
   import AshDemoWeb.Gettext
+  import AshDemoWeb.Helpers
 
+  alias Phoenix.HTML.Form
   alias Phoenix.HTML.FormField
   alias Phoenix.LiveView.JS
 
@@ -52,7 +54,7 @@ defmodule AshDemoWeb.CoreComponents do
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >
-      <div id={"#{@id}-bg"} class="bg-zinc-50/90 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div id={"#{@id}-bg"} class="bg-neutral/80 fixed inset-0 transition-opacity" aria-hidden="true" />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -68,7 +70,7 @@ defmodule AshDemoWeb.CoreComponents do
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-base-100 p-14 shadow-lg ring-1 transition"
             >
               <div class="absolute top-6 right-5">
                 <button
@@ -77,7 +79,7 @@ defmodule AshDemoWeb.CoreComponents do
                   class="-m-3 flex-none p-3 opacity-20 hover:opacity-40"
                   aria-label={gettext("close")}
                 >
-                  <.icon name="hero-x-mark-solid" class="h-5 w-5" />
+                  <.icon name="tabler-x" class="h-5 w-5" />
                 </button>
               </div>
               <div id={"#{@id}-content"}>
@@ -124,13 +126,13 @@ defmodule AshDemoWeb.CoreComponents do
       {@rest}
     >
       <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
-        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" />
+        <.icon :if={@kind == :info} name="tabler-info-circle-filled" class="h-4 w-4" />
+        <.icon :if={@kind == :error} name="tabler-exclamation-circle-filled" class="h-4 w-4" />
         <%= @title %>
       </p>
       <p class="mt-2 text-sm leading-5"><%= msg %></p>
       <button type="button" class="group absolute top-1 right-1 p-2" aria-label={gettext("close")}>
-        <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
+        <.icon name="tabler-x" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
       </button>
     </div>
     """
@@ -160,7 +162,7 @@ defmodule AshDemoWeb.CoreComponents do
         hidden
       >
         <%= gettext("Attempting to reconnect") %>
-        <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+        <.icon name="tabler-reload" class="ml-1 h-3 w-3 animate-spin" />
       </.flash>
 
       <.flash
@@ -172,7 +174,7 @@ defmodule AshDemoWeb.CoreComponents do
         hidden
       >
         <%= gettext("Hang in there while we get back on track") %>
-        <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+        <.icon name="tabler-reload" class="ml-1 h-3 w-3 animate-spin" />
       </.flash>
     </div>
     """
@@ -204,7 +206,7 @@ defmodule AshDemoWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-10 space-y-8 bg-white">
+      <div class="space-y-4">
         <%= render_slot(@inner_block, f) %>
         <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
           <%= render_slot(action, f) %>
@@ -278,7 +280,7 @@ defmodule AshDemoWeb.CoreComponents do
   attr :type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file month number password
-               range search select tel text textarea time url week)
+               range search select tel text textarea time url week radio)
 
   attr :field, FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -293,8 +295,17 @@ defmodule AshDemoWeb.CoreComponents do
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
 
+  attr :class, :string, default: nil
+
   def input(%{field: %FormField{} = field} = assigns) do
     errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
+
+    assigns =
+      with %{type: "radio"} <- assigns do
+        assigns
+        |> assign(:checked, assigns.value == field.value)
+        |> assign(:id, Form.input_id(field.form, field.field, assigns.value))
+      end
 
     assigns
     |> assign(field: nil, id: assigns.id || field.id)
@@ -306,9 +317,7 @@ defmodule AshDemoWeb.CoreComponents do
 
   def input(%{type: "checkbox"} = assigns) do
     assigns =
-      assign_new(assigns, :checked, fn ->
-        Phoenix.HTML.Form.normalize_value("checkbox", assigns[:value])
-      end)
+      assign_new(assigns, :checked, fn -> Form.normalize_value("checkbox", assigns[:value]) end)
 
     ~H"""
     <div>
@@ -330,20 +339,44 @@ defmodule AshDemoWeb.CoreComponents do
     """
   end
 
+  def input(%{type: "radio"} = assigns) do
+    assigns =
+      assign_new(assigns, :checked, fn ->
+        Form.normalize_value("checkbox", assigns[:value])
+      end)
+
+    ~H"""
+    <div class="flex items-center gap-2">
+      <input
+        type="radio"
+        id={@id}
+        name={@name}
+        value={@value}
+        checked={@checked}
+        class="radio"
+        {@rest}
+      />
+      <%= @label %>
+    </div>
+    """
+  end
+
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div>
-      <.label for={@id}><%= @label %></.label>
+    <div class="form-control w-full">
+      <.label :if={@label} for={@id}><%= @label %></.label>
+
       <select
         id={@id}
         name={@name}
-        class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm"
+        class={["select select-bordered", @errors != [] && "select-error"]}
         multiple={@multiple}
         {@rest}
       >
         <option :if={@prompt} value=""><%= @prompt %></option>
         <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
       </select>
+
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
@@ -351,18 +384,19 @@ defmodule AshDemoWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div>
-      <.label for={@id}><%= @label %></.label>
+    <div class="form-control w-full">
+      <.label :if={@label} for={@id}><%= @label %></.label>
+
       <textarea
         id={@id}
         name={@name}
         class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem]",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
+          "textarea textarea-bordered",
+          @errors != [] && "textarea-error"
         ]}
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
@@ -371,20 +405,21 @@ defmodule AshDemoWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div>
-      <.label for={@id}><%= @label %></.label>
+    <div class="form-control w-full">
+      <.label :if={@label} for={@id}><%= @label %></.label>
+
       <input
         type={@type}
         name={@name}
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
         class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
+          "input input-bordered",
+          @errors != [] && "input-error"
         ]}
         {@rest}
       />
+
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
@@ -398,8 +433,8 @@ defmodule AshDemoWeb.CoreComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
-      <%= render_slot(@inner_block) %>
+    <label for={@for} class="label">
+      <span class="label-text"><%= render_slot(@inner_block) %></span>
     </label>
     """
   end
@@ -411,10 +446,12 @@ defmodule AshDemoWeb.CoreComponents do
 
   def error(assigns) do
     ~H"""
-    <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600">
-      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" />
-      <%= render_slot(@inner_block) %>
-    </p>
+    <div class="label">
+      <span class="label-text-alt flex gap-2 items-center text-error">
+        <.icon name="tabler-exclamation-circle-filled" class="h-5 w-5 flex-none" />
+        <%= render_slot(@inner_block) %>
+      </span>
+    </div>
     """
   end
 
@@ -429,16 +466,22 @@ defmodule AshDemoWeb.CoreComponents do
 
   def header(assigns) do
     ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
+    <header class={[
+      @actions != [] &&
+        "flex items-center justify-between gap-6 p-8 border-b border-base-200 bg-base-200",
+      @class
+    ]}>
       <div>
-        <h1 class="text-lg font-semibold leading-8 text-zinc-800">
+        <h1 class="text-xl font-semibold">
           <%= render_slot(@inner_block) %>
         </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
+        <p :if={@subtitle != []} class="mt-2 text-sm opacity-50">
           <%= render_slot(@subtitle) %>
         </p>
       </div>
-      <div class="flex-none"><%= render_slot(@actions) %></div>
+      <div class="flex-none flex items-center gap-4">
+        <%= render_slot(@actions) %>
+      </div>
     </header>
     """
   end
@@ -475,45 +518,36 @@ defmodule AshDemoWeb.CoreComponents do
       end
 
     ~H"""
-    <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-11 sm:w-full">
-        <thead class="text-sm text-left leading-6 text-zinc-500">
+    <div class="overflow-y-auto">
+      <table class="table table-pin-rows table-pin-cols w-full">
+        <thead>
           <tr>
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal"><%= col[:label] %></th>
-            <th :if={@action != []} class="relative p-0 pb-4">
+            <th :for={col <- @col}><%= col[:label] %></th>
+            <th :if={@action != []}>
               <span class="sr-only"><%= gettext("Actions") %></span>
             </th>
           </tr>
         </thead>
-        <tbody
-          id={@id}
-          phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-        >
-          <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-zinc-50">
+        <tbody id={@id} phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}>
+          <tr
+            :for={row <- @rows}
+            id={@row_id && @row_id.(row)}
+            class={[@row_click && "hover:bg-base-200"]}
+          >
             <td
-              :for={{col, i} <- Enum.with_index(@col)}
+              :for={{col, _} <- Enum.with_index(@col)}
               phx-click={@row_click && @row_click.(row)}
-              class={["relative p-0", @row_click && "hover:cursor-pointer"]}
+              class={[@row_click && "hover:cursor-pointer"]}
             >
-              <div class="block py-4 pr-6">
-                <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl" />
-                <span class={["relative", i == 0 && "font-semibold text-zinc-900"]}>
-                  <%= render_slot(col, @row_item.(row)) %>
-                </span>
-              </div>
+              <%= render_slot(col, @row_item.(row)) %>
             </td>
-            <td :if={@action != []} class="relative w-14 p-0">
-              <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
-                <span class="absolute -inset-y-px -right-4 left-0 group-hover:bg-zinc-50 sm:rounded-r-xl" />
-                <span
-                  :for={action <- @action}
-                  class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
-                >
+            <th :if={@action != []} class={[@row_click && "hover:cursor-pointer"]}>
+              <div class="flex justify-end">
+                <span :for={action <- @action}>
                   <%= render_slot(action, @row_item.(row)) %>
                 </span>
               </div>
-            </td>
+            </th>
           </tr>
         </tbody>
       </table>
@@ -565,7 +599,7 @@ defmodule AshDemoWeb.CoreComponents do
         navigate={@navigate}
         class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
       >
-        <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
+        <.icon name="tabler-arrow-narrow-left" class="h-3 w-3" />
         <%= render_slot(@inner_block) %>
       </.link>
     </div>
@@ -573,29 +607,78 @@ defmodule AshDemoWeb.CoreComponents do
   end
 
   @doc """
-  Renders a [Heroicon](https://heroicons.com).
-
-  Heroicons come in three styles – outline, solid, and mini.
-  By default, the outline style is used, but solid and mini may
-  be applied by using the `-solid` and `-mini` suffix.
+  Renders a [Tabler Icons](https://tabler.io/icons) icon.
 
   You can customize the size and colors of the icons by setting
   width, height, and background color classes.
 
-  Icons are extracted from the `deps/heroicons` directory and bundled within
+  Icons are extracted from the `deps/tabler_icons` directory and bundled within
   your compiled app.css by the plugin in your `assets/tailwind.config.js`.
 
   ## Examples
 
-      <.icon name="hero-x-mark-solid" />
-      <.icon name="hero-arrow-path" class="ml-1 w-3 h-3 animate-spin" />
+      <.icon name="tabler-circle-x" />
+      <.icon name="tabler-reload" class="ml-1 w-3 h-3 animate-spin" />
   """
   attr :name, :string, required: true
   attr :class, :string, default: nil
 
-  def icon(%{name: "hero-" <> _} = assigns) do
+  def icon(%{name: "tabler-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
+    """
+  end
+
+  attr :datetime, DateTime, required: true
+  attr :format, :atom, default: :medium, values: [:short, :medium, :long, :full]
+  attr :style, :atom, default: :default, values: [:default, :at]
+  attr :tooltip, :atom, default: :long
+  attr :rest, :global
+
+  slot :inner_block, required: false
+
+  def time(assigns) do
+    ~H"""
+    <.tooltip text={format_datetime(@datetime, format: @tooltip)}>
+      <time datetime={DateTime.to_iso8601(@datetime)} {@rest}>
+        <%= render_slot(@inner_block) || format_datetime(@datetime, format: @format) %>
+      </time>
+    </.tooltip>
+    """
+  end
+
+  attr :text, :string, required: true
+  attr :class, :string, default: nil
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def tooltip(assigns) do
+    ~H"""
+    <div class={["tooltip", @class]} data-tip={@text} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  attr :id, :string, default: "drawer"
+  attr :class, :string, default: nil
+
+  slot :inner_block, required: true
+  slot :side, required: false
+
+  def drawer(assigns) do
+    ~H"""
+    <div class={["drawer", @class]}>
+      <input id={@id} type="checkbox" class="drawer-toggle" />
+      <div class="drawer-content">
+        <%= render_slot(@inner_block) %>
+      </div>
+      <div :if={@side} class="drawer-side">
+        <label for={@id} aria-label="close sidebar" class="drawer-overlay"></label>
+        <%= render_slot(@side) %>
+      </div>
+    </div>
     """
   end
 
