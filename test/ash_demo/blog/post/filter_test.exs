@@ -57,10 +57,10 @@ defmodule AshDemo.Blog.Post.FilterTest do
 
   test "params" do
     assert {:ok, filter} = Filter.new()
-    assert filter.params == %{status: :all}
+    assert filter.params == %{status: :all, with_comments: false}
 
     assert {:ok, filter} = Filter.new(%{status: :published})
-    assert filter.params == %{status: :published}
+    assert filter.params == %{status: :published, with_comments: false}
   end
 
   test "count" do

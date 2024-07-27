@@ -79,9 +79,10 @@ defmodule AshDemo.Blog.Post do
     calculate :tsv, AshPostgres.Tsvector do
       calculation expr(
                     fragment(
-                      "to_tsvector('simple', ?) || to_tsvector('simple', ?)",
+                      "to_tsvector('simple', ?) || to_tsvector('simple', ?) || ?",
                       title,
-                      body
+                      body,
+                      category.tsv
                     )
                   )
     end
@@ -90,6 +91,9 @@ defmodule AshDemo.Blog.Post do
       argument :search, :search_query, allow_nil?: false
       calculation expr(fragment("? @@ to_tsquery(?)", tsv, ^arg(:search)))
     end
+  end
+
+  aggregates do
   end
 
   aggregates do

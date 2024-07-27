@@ -1,16 +1,12 @@
 defmodule AshDemo.Blog.Post.Filter do
   @moduledoc false
 
-  use Ash.Resource,
-    data_layer: :embedded,
-    embed_nil_values?: false
+  use AshDemo.Search.Filter,
+    apply: AshDemo.Blog.Post.Filter.Apply
 
-  alias Ash.Changeset
-  alias Ash.Resource.Info
   alias AshDemo.Blog.Category
 
   require Ash.Query
-  require Ash.Resource.Change.Builtins
 
   defmodule Apply do
     @moduledoc false
@@ -64,7 +60,6 @@ defmodule AshDemo.Blog.Post.Filter do
     domain AshDemo.Blog
     define :new
     define :update
-    define :apply, args: [:query, :filter]
   end
 
   actions do
@@ -82,25 +77,9 @@ defmodule AshDemo.Blog.Post.Filter do
       argument :category_id, :string
       change manage_relationship(:category_id, :category, type: :append_and_remove)
     end
-
-    action :apply, :struct do
-      constraints instance_of: Ash.Query
-      argument :query, :term, allow_nil?: false
-      argument :filter, :struct, allow_nil?: false
-      run Apply
-    end
-  end
-
-  preparations do
-    prepare build(load: :params)
-    prepare build(load: :count)
-    prepare build(load: :active?)
   end
 
   changes do
-    change load(:params)
-    change load(:count)
-    change load(:active?)
     change load(:category)
     change load(:categories)
   end
@@ -117,37 +96,5 @@ defmodule AshDemo.Blog.Post.Filter do
     end
 
     belongs_to :category, Category
-  end
-
-  calculations do
-    calculate :params, :map do
-      calculation fn filters, _ctx ->
-        attrs = __MODULE__ |> Info.attributes() |> Enum.map(& &1.name)
-
-        for filter <- filters do
-          filter
-          |> Map.from_struct()
-          |> Map.take(attrs)
-          |> Enum.reject(fn {_, v} -> v == nil end)
-          |> Map.new()
-        end
-      end
-    end
-
-    calculate :count, :integer do
-      load :params
-
-      calculation fn filters, _ctx ->
-        blank = changeset_to_new()
-
-        for filter <- filters do
-          Enum.count(filter.params, fn {k, v} -> blank.attributes[k] != v end)
-        end
-      end
-    end
-
-    calculate :active?, :boolean do
-      calculation expr(count > 0)
-    end
   end
 end

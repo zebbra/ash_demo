@@ -39,6 +39,17 @@ defmodule AshDemo.Blog.Category do
     has_many :posts, Post
   end
 
+  calculations do
+    calculate :tsv, AshPostgres.Tsvector do
+      calculation expr(fragment("to_tsvector('simple', ?)", name))
+    end
+
+    calculate :matching?, :boolean do
+      argument :search, :search_query, allow_nil?: false
+      calculation expr(fragment("? @@ to_tsquery(?)", tsv, ^arg(:search)))
+    end
+  end
+
   aggregates do
     count :posts_count, :posts
   end

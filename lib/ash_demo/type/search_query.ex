@@ -4,11 +4,6 @@ constraints = [
     doc: "Match the prefix of the terms",
     default: true
   ],
-  negate?: [
-    type: :boolean,
-    doc: "Negate the search query",
-    default: false
-  ],
   any_word?: [
     type: :boolean,
     doc: "Use OR instead of AND for the terms",
@@ -28,6 +23,7 @@ defmodule AshDemo.Type.SearchQuery do
   use Ash.Type
 
   @constraints constraints
+  @disallowed_characters ~r/['?\\:‘’ʻʼ]/
 
   @impl Ash.Type
   def constraints, do: @constraints
@@ -65,22 +61,27 @@ defmodule AshDemo.Type.SearchQuery do
     op = if any_word?, do: " | ", else: " & "
 
     query
+    |> String.replace(@disallowed_characters, "")
     |> String.split(" ", trim: true)
-    |> Enum.map_join(op, &to_term(&1, constraints))
+    |> Enum.flat_map(&to_term(&1, constraints))
+    |> Enum.join(op)
   end
 
   defp to_term(word, constraints) do
-    negate? = Keyword.fetch!(constraints, :negate?)
     prefix? = Keyword.fetch!(constraints, :prefix?)
+    _to_term(word, prefix?, false)
+  end
 
-    term =
-      case {word, negate?} do
-        {"!" <> t, false} -> "-" <> t
-        {"!" <> t, true} -> t
-        {t, false} -> t
-        {t, true} -> "-" <> t
-      end
+  defp _to_term("", _, _), do: []
 
-    if prefix?, do: term <> ":*", else: term
+  defp _to_term("-" <> rest, prefix?, negate?) do
+    _to_term(rest, prefix?, !negate?)
+  end
+
+  defp _to_term(term, prefix?, negate?) do
+    term = "'" <> term <> "'"
+    term = if negate?, do: "!" <> term, else: term
+    term = if prefix?, do: term <> ":*", else: term
+    [term]
   end
 end

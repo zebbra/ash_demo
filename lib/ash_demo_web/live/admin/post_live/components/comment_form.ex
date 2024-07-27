@@ -49,7 +49,6 @@ defmodule AshDemoWeb.Admin.PostLive.CommentForm do
         {:noreply, socket}
 
       {:error, form} ->
-        dbg(form)
         {:noreply, assign(socket, form: form)}
     end
   end

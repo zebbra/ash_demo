@@ -32,7 +32,8 @@ config :ash_demo, AshDemoWeb.Endpoint,
 config :ash_demo,
   ecto_repos: [AshDemo.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [AshDemo.Blog]
+  ash_domains: [AshDemo.Blog],
+  base_resources: [AshDemo.Search.Filter]
 
 config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
 

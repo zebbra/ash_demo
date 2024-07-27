@@ -127,7 +127,6 @@ defmodule AshDemoWeb.Admin.PostLive.Index do
   end
 
   defp apply_filter(socket, params) do
-    dbg(params)
     filter = params |> Map.get("filter", %{}) |> Post.Filter.new!()
     posts = read_posts(socket, filter)
 

@@ -13,7 +13,7 @@ defmodule AshDemoWeb.AdminComponents do
       </div>
 
       <:side>
-        <div class="h-full flex flex-col p-8 gap-8 w-24 lg:w-72 max-lg:items-center border-r border-base-300 bg-primary text-primary-content">
+        <div class="transition-[width] h-full flex flex-col p-8 gap-8 w-24 lg:w-72 max-lg:items-center border-r border-base-300 bg-primary text-primary-content">
           <.admin_logo />
           <.admin_menu />
         </div>
