@@ -23,7 +23,7 @@ defmodule AshDemo.Type.SearchQuery do
   use Ash.Type
 
   @constraints constraints
-  @disallowed_characters ~r/['?\\:‘’ʻʼ]/
+  @disallowed_characters ~r/['?\\:‘’ʻʼ]/u
 
   @impl Ash.Type
   def constraints, do: @constraints
