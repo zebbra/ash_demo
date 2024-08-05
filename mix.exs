@@ -78,7 +78,10 @@ defmodule AshDemo.MixProject do
 
       # Linting & testing
       {:styler, "~> 1.0.0-rc.1", only: [:dev, :test], runtime: false},
-      {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false}
+      {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
+
+      # Misc
+      {:faker, "~> 0.18", only: [:dev, :test]}
     ]
   end
 
